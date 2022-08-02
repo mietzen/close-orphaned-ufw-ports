@@ -6,8 +6,9 @@ You can edit the grace period for services to be detected under `/etc/close-orph
 Install on Debian 10:
 ```
 sudo apt update && apt install ufw -y
-git clone https://github.com/mietzen/close_orphaned_ufw_ports
-sudo bash close_orphaned_ufw_ports/install.sh
+git clone https://github.com/mietzen/close-orphaned-ufw-ports
+cd close-orphaned-ufw-ports
+sudo bash install.sh
 ```
 
 Uninstall:
