@@ -6,10 +6,11 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 mkdir -p /etc/close-orphaned-ufw-ports
-touch /etc/close-orphaned-ufw-ports/whitelist
+touch /etc/close-orphaned-ufw-ports/whitelist.v4
+touch /etc/close-orphaned-ufw-ports/whitelist.v6
 cp ./config /etc/close-orphaned-ufw-ports/config
 chmod 744 /etc/close-orphaned-ufw-ports/config
-chmod 744 /etc/close-orphaned-ufw-ports/whitelist
+chmod 744 /etc/close-orphaned-ufw-ports/whitelist.*
 
 cp ./close-orphaned-ufw-ports.sh /usr/bin/close-orphaned-ufw-ports
 chmod +x /usr/bin/close-orphaned-ufw-ports

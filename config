@@ -1,6 +1,8 @@
 GRACE_PERIOD=60 # In seconds
 
-WHITELISTED_PORTS_FILE='/etc/close-orphaned-ufw-ports/whitelist'
-ORPHANED_PORTS_FILE='/dev/shm/close-orphaned-ufw-ports.db'
+WHITELISTED_PORTS_FILE_V4='/etc/close-orphaned-ufw-ports/whitelist.v4'
+WHITELISTED_PORTS_FILE_V6='/etc/close-orphaned-ufw-ports/whitelist.v6'
+ORPHANED_PORTS_FILE_V4='/dev/shm/close-orphaned-ufw-ports.v4.db'
+ORPHANED_PORTS_FILE_V6='/dev/shm/close-orphaned-ufw-ports.v6.db'
 PID_FILE='/dev/shm/close-orphaned-ufw-ports.pid'
 STOP_FILE='/dev/shm/close-orphaned-ufw-ports.stop'

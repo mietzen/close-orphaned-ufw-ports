@@ -10,39 +10,81 @@ function start_service {
         fi
     fi
     # In case of ungraceful exit make sure tmp files are all cleared
-    rm -rf ${ORPHANED_PORTS_FILE} ${STOP_FILE} ${PID_FILE}
+    rm -rf ${ORPHANED_PORTS_FILE_V4} ${ORPHANED_PORTS_FILE_V6} ${STOP_FILE} ${PID_FILE}
 
-    touch ${ORPHANED_PORTS_FILE}
+    touch ${ORPHANED_PORTS_FILE_V4}
     echo "$$" > ${PID_FILE}
     while [ ! -f ${STOP_FILE} ]; do
         # Get Listing ports from netstat
-        LISTING_PORTS=$(netstat -tulpn4 | grep "LISTEN" | awk 'BEGIN{OFS="/"} { print $4,$1}' | cut -d':' -f2)
+        LISTING_PORTS_V4=$(netstat -tulpn4 | grep "LISTEN" | awk 'BEGIN{OFS="/"} { print $4,$1}' | cut -d':' -f2)
+        LISTING_PORTS_V6=$(netstat -tulpn6 | grep "LISTEN" | awk 'BEGIN{OFS="/"} { print $4,$1}' | cut -d':' -f2)
         # Get opened ports from UFW
-        OPENED_PORTS_UFW=$(ufw status | grep -oP '^\d{1,5}(\/tcp|\/udp)?(\s)(?!\(v6\))')
+        OPENED_PORTS_UFW_V4=$(ufw status | grep -oP '^\d{1,5}(\/tcp|\/udp)?(\s)(?!\(v6\))')
+        OPENED_PORTS_UFW_V6=$(ufw status | grep -oP '^\d{1,5}(\/tcp|\/udp)?(\s)(?=\(v6\))')
 
-        PORTS_TO_CLOSE=$(diff -wB <(echo "$LISTING_PORTS") <(echo "$OPENED_PORTS_UFW") | grep -oP '^>.*' | cut -d' ' -f2)
+        PORTS_TO_CLOSE_V4=$(diff -wB <(echo "$LISTING_PORTS_V4") <(echo "$OPENED_PORTS_UFW_V4") | grep -oP '^>.*' | cut -d' ' -f2)
+        PORTS_TO_CLOSE_V6=$(diff -wB <(echo "$LISTING_PORTS_V6") <(echo "$OPENED_PORTS_UFW_V6") | grep -oP '^>.*' | cut -d' ' -f2)
 
-        if [ ! -z "${PORTS_TO_CLOSE}" ]; then 
-            for port in ${PORTS_TO_CLOSE}; do
-                if ! grep -q ${port} ${WHITELISTED_PORTS_FILE}; then
-                    if grep -q ${port} ${ORPHANED_PORTS_FILE}; then
-                        first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE} | awk '{print $1}')
+        if [ ! -z "${PORTS_TO_CLOSE_V4}" ]; then 
+            for port in ${PORTS_TO_CLOSE_V4}; do
+                if ! grep -q ${port} ${WHITELISTED_PORTS_FILE_V4}; then
+                    if grep -q ${port} ${ORPHANED_PORTS_FILE_V4}; then
+                        first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V4} | awk '{print $1}')
                         if [[ $(( $(date +%s) - first_apperance )) -ge $GRACE_PERIOD ]]; then
                             echo "${port} is opend and unused for more than ${GRACE_PERIOD} Seconds."
-                            rule=$(ufw status numbered | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
+                            rule=$(ufw status numbered | grep -v '(v6)' | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
                             ufw --force delete ${rule}
-                            sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE}
+                            sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V4}
                             echo "Closed Port ${port}"
                         fi
                     else
-                        echo "$(date +%s) ${port}" >> ${ORPHANED_PORTS_FILE}
+                        echo "$(date +%s) ${port}" >> ${ORPHANED_PORTS_FILE_V4}
                     fi
                 fi
             done
         fi
+        if [ ! -z "${PORTS_TO_CLOSE_V6}" ]; then 
+            for port in ${PORTS_TO_CLOSE_V6}; do
+                if ! grep -q ${port} ${WHITELISTED_PORTS_FILE_V6}; then
+                    if grep -q ${port} ${ORPHANED_PORTS_FILE_V6}; then
+                        first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V6} | awk '{print $1}')
+                        if [[ $(( $(date +%s) - first_apperance )) -ge $GRACE_PERIOD ]]; then
+                            echo "${port} (v6) is opend and unused for more than ${GRACE_PERIOD} Seconds."
+                            rule=$(ufw status numbered | grep '(v6)' | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
+                            ufw --force delete ${rule}
+                            sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V6}
+                            echo "Closed Port ${port}"
+                        fi
+                    else
+                        echo "$(date +%s) ${port}" >> ${ORPHANED_PORTS_FILE_V6}
+                    fi
+                fi
+            done
+        fi
+
+        # Delte recovered service ports from db
+        for port in ${LISTING_PORTS_V4}; do
+            if grep -q ${port} ${ORPHANED_PORTS_FILE_V4}; then
+                if ! $(echo ${PORTS_TO_CLOSE_V4} | grep -q ${port})
+                    echo "${port} has recovered within grace period."
+                    first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V4} | awk '{print $1}')
+                    sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V4}
+                fi
+            if
+        done
+        for port in ${LISTING_PORTS_6}; do
+            if grep -q ${port} ${ORPHANED_PORTS_FILE_V6}; then
+                if ! $(echo ${PORTS_TO_CLOSE_V6} | grep -q ${port})
+                    echo "${port} has recovered within grace period."
+                    first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V6} | awk '{print $1}')
+                    sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V6}
+                fi
+            if
+        done
+
         sleep 5
     done
-    rm -rf ${ORPHANED_PORTS_FILE} ${PID_FILE} ${STOP_FILE}
+    rm -rf ${ORPHANED_PORTS_FILE_V4} ${ORPHANED_PORTS_FILE_V6} ${PID_FILE} ${STOP_FILE}
 }
 
 function stop_service {
@@ -59,7 +101,7 @@ function stop_service {
     done
     if [ ! ${GRACEFUL_EXIT} ] ; then
         kill -9 ${PID}
-        rm -rf ${ORPHANED_PORTS_FILE} ${PID_FILE} ${STOP_FILE}
+        rm -rf ${ORPHANED_PORTS_FILE_V4} ${ORPHANED_PORTS_FILE_V6} ${PID_FILE} ${STOP_FILE}
         echo "process was terminated ungracefully after 20 seconds"
         exit 1
     fi
