@@ -23,14 +23,14 @@ function start_service {
 
         # Get opened ports from UFW 
         # Check for ports with protocol
-        OPENED_PORTS_UFW_V4_WP=$(echo "$UFW_STATUS" | grep -P 'ALLOW\s+Anywhere' | grep -v '(v6)' | grep -oP '^\d{1,5}(\/tcp|\/udp)')
-        OPENED_PORTS_UFW_V6_WP=$(echo "$UFW_STATUS" | grep -P 'ALLOW\s+Anywhere' | grep '(v6)' | grep -oP '^\d{1,5}(\/tcp|\/udp)')
+        OPENED_PORTS_UFW_V4_WP=$(echo "$UFW_STATUS" | grep -P 'ALLOW' | grep -v '(v6)' | grep -oP '^\d{1,5}(\/tcp|\/udp)')
+        OPENED_PORTS_UFW_V6_WP=$(echo "$UFW_STATUS" | grep -P 'ALLOW' | grep '(v6)' | grep -oP '^\d{1,5}(\/tcp|\/udp)')
         PORTS_TO_CLOSE_V4_WP=$(diff -wB <(echo "$LISTING_PORTS_V4") <(echo "$OPENED_PORTS_UFW_V4_WP") | grep -oP '^>.*' | cut -d' ' -f2)
         PORTS_TO_CLOSE_V6_WP=$(diff -wB <(echo "$LISTING_PORTS_V6") <(echo "$OPENED_PORTS_UFW_V4_WP") | grep -oP '^>.*' | cut -d' ' -f2)
 
         # Also check against rules without protocol 
-        OPENED_PORTS_UFW_V4_WOP=$(echo "$UFW_STATUS" | grep -P 'ALLOW\s+Anywhere' | grep -v '(v6)' | grep -oP '^\d{1,5}\s')
-        OPENED_PORTS_UFW_V6_WOP=$(echo "$UFW_STATUS" | grep -P 'ALLOW\s+Anywhere' | grep '(v6)' | grep -oP '^\d{1,5}\s')
+        OPENED_PORTS_UFW_V4_WOP=$(echo "$UFW_STATUS" | grep -P 'ALLOW' | grep -v '(v6)' | grep -oP '^\d{1,5}\s')
+        OPENED_PORTS_UFW_V6_WOP=$(echo "$UFW_STATUS" | grep -P 'ALLOW' | grep '(v6)' | grep -oP '^\d{1,5}\s')
         OPENED_PORTS_UFW_V4_WOP=$(while IFS= read -r line ; do port=$(tr -d '[:blank:]' <<< ${line}); echo -e "${port}/tcp\n${port}/udp"; done <<< $OPENED_PORTS_UFW_V4_WOP)
         OPENED_PORTS_UFW_V6_WOP=$(while IFS= read -r line ; do port=$(tr -d '[:blank:]' <<< ${line}); echo -e "${port}/tcp\n${port}/udp"; done <<< $OPENED_PORTS_UFW_V6_WOP)
         PORTS_TO_CLOSE_V4_WOP=$(diff -wB <(echo "$LISTING_PORTS_V4") <(echo "$OPENED_PORTS_UFW_V4_WOP") | grep -oP '^>.*' | cut -d' ' -f2)
