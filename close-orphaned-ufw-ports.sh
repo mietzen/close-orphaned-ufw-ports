@@ -27,10 +27,10 @@ function start_service {
                 if ! grep -q ${port} ${WHITELISTED_PORTS_FILE}; then
                     if grep -q ${port} ${ORPHANED_PORTS_FILE}; then
                         first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE} | awk '{print $1}')
-                        if [[ $(( first_apperance - $(date +%s) )) -ge $GRACE_PERIOD ]]; then
+                        if [[ $(( $(date +%s) - first_apperance )) -ge $GRACE_PERIOD ]]; then
                             echo "${port} is opend and unused for more than ${GRACE_PERIOD} Seconds."
                             rule=$(ufw status numbered | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
-                            ufw delete ${rule}
+                            ufw --force delete ${rule}
                             sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE}
                             echo "Closed Port ${port}"
                         fi
