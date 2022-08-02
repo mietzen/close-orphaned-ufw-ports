@@ -8,6 +8,8 @@ fi
 mkdir -p /etc/close-orphaned-ufw-ports
 touch /etc/close-orphaned-ufw-ports/whitelist
 cp ./config /etc/close-orphaned-ufw-ports/config
+chmod 744 /etc/close-orphaned-ufw-ports/config
+chmod 744 /etc/close-orphaned-ufw-ports/whitelist
 
 cp ./close-orphaned-ufw-ports.sh /usr/bin/close-orphaned-ufw-ports
 chmod +x /usr/bin/close-orphaned-ufw-ports
