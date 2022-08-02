@@ -18,7 +18,7 @@ function start_service {
         # Get Listing ports from netstat
         LISTING_PORTS=$(netstat -tulpn4 | grep "LISTEN" | awk 'BEGIN{OFS="/"} { print $4,$1}' | cut -d':' -f2)
         # Get opened ports from UFW
-        OPENED_PORTS_UFW=$(ufw status | grep -oP '^\d{1,5}/(tcp|udp)(?!\s\(v6\))')
+        OPENED_PORTS_UFW=$(ufw status | grep -oP '^\d{1,5}(\/tcp|\/udp)?(\s)(?!\(v6\))' | xargs)
 
         PORTS_TO_CLOSE=$(diff -wB <(echo "$LISTING_PORTS") <(echo "$OPENED_PORTS_UFW") | grep -oP '^<.*' | cut -d' ' -f2)
 
