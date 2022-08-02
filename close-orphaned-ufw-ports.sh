@@ -67,10 +67,10 @@ function stop_service {
 
 case $1 in
     start)
-        start_service()
+        start_service
         ;;
     stop) 
-        stop_service()
+        stop_service
         ;;
     *)
         echo "Unkown argument: $1"
