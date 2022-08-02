@@ -4,7 +4,7 @@ source /etc/close-orphaned-ufw-ports/config
 
 function start_service {
     if [ -f ${PID_FILE} ]; then 
-        if ps -p ${PID} > /dev/null; then
+        if ps -p $(cat ${PID_FILE}) > /dev/null; then
             echo "close-orphaned-ufw-ports is already running, pid: $(cat ${PID_FILE})"
             exit 1
         fi
