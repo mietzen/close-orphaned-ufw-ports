@@ -20,8 +20,8 @@ function start_service {
         LISTING_PORTS_V4=$(netstat -tulpn4 | grep "LISTEN" | awk 'BEGIN{OFS="/"} { print $4,$1}' | grep -oP '\d{1,5}\/(tcp|udp)')
         LISTING_PORTS_V6=$(netstat -tulpn6 | grep "LISTEN" | awk 'BEGIN{OFS="/"} { print $4,$1}' | grep -oP '\d{1,5}\/(tcp|udp)')
         # Get opened ports from UFW
-        OPENED_PORTS_UFW_V4=$(ufw status | grep -v '(v6)' | grep -oP '^\d{1,5}(\/tcp|\/udp)')
-        OPENED_PORTS_UFW_V6=$(ufw status | grep '(v6)' | grep -oP '^\d{1,5}(\/tcp|\/udp)')
+        OPENED_PORTS_UFW_V4=$(ufw status | grep -v '(v6)' | grep -oP '^\d{1,5}(\/tcp|\/udp)?')
+        OPENED_PORTS_UFW_V6=$(ufw status | grep '(v6)' | grep -oP '^\d{1,5}(\/tcp|\/udp)?')
 
         PORTS_TO_CLOSE_V4=$(diff -wB <(echo "$LISTING_PORTS_V4") <(echo "$OPENED_PORTS_UFW_V4") | grep -oP '^>.*' | cut -d' ' -f2)
         PORTS_TO_CLOSE_V6=$(diff -wB <(echo "$LISTING_PORTS_V6") <(echo "$OPENED_PORTS_UFW_V6") | grep -oP '^>.*' | cut -d' ' -f2)
