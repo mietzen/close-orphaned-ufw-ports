@@ -70,7 +70,6 @@ function start_service {
                         first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V4} | awk '{print $1}')
                         if [[ $(( $(date +%s) - first_apperance )) -ge $GRACE_PERIOD ]]; then
                             echo "${port} is opend and unused for more than ${GRACE_PERIOD} Seconds."
-                            while 
                             rule=$(ufw status numbered | grep -v '(v6)' | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
                             ufw --force delete ${rule}
                             sed -i "\|${first_apperance} ${port}|d" ${ORPHANED_PORTS_FILE_V4}
