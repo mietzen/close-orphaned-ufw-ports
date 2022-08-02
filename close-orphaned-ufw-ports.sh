@@ -25,7 +25,8 @@ function start_service {
 
         PORTS_TO_CLOSE_V4=$(diff -wB <(echo "$LISTING_PORTS_V4") <(echo "$OPENED_PORTS_UFW_V4") | grep -oP '^>.*' | cut -d' ' -f2)
         PORTS_TO_CLOSE_V6=$(diff -wB <(echo "$LISTING_PORTS_V6") <(echo "$OPENED_PORTS_UFW_V6") | grep -oP '^>.*' | cut -d' ' -f2)
-
+        
+        # Mark / Close unused ports
         if [ ! -z "${PORTS_TO_CLOSE_V4}" ]; then 
             for port in ${PORTS_TO_CLOSE_V4}; do
                 if ! grep -q ${port} ${WHITELISTED_PORTS_FILE_V4}; then
@@ -54,7 +55,7 @@ function start_service {
                             rule=$(ufw status numbered | grep '(v6)' | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
                             ufw --force delete ${rule}
                             sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V6}
-                            echo "Closed Port ${port}"
+                            echo "Closed Port ${port} (v6)"
                         fi
                     else
                         echo "$(date +%s) ${port}" >> ${ORPHANED_PORTS_FILE_V6}
