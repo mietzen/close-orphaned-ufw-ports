@@ -36,7 +36,7 @@ function start_service {
                             echo "${port} is opend and unused for more than ${GRACE_PERIOD} Seconds."
                             rule=$(ufw status numbered | grep -v '(v6)' | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
                             ufw --force delete ${rule}
-                            sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V4}
+                            sed -i "#${first_apperance} ${port}#d" ${ORPHANED_PORTS_FILE_V4}
                             echo "Closed Port ${port}"
                         fi
                     else
@@ -54,7 +54,7 @@ function start_service {
                             echo "${port} (v6) is opend and unused for more than ${GRACE_PERIOD} Seconds."
                             rule=$(ufw status numbered | grep '(v6)' | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
                             ufw --force delete ${rule}
-                            sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V6}
+                            sed -i "#${first_apperance} ${port}#d" ${ORPHANED_PORTS_FILE_V6}
                             echo "Closed Port ${port} (v6)"
                         fi
                     else
@@ -70,9 +70,7 @@ function start_service {
                 if ! $(echo ${PORTS_TO_CLOSE_V4} | grep -q ${port}); then
                     echo "${port} has recovered within grace period."
                     first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V4} | awk '{print $1}')
-                    echo "$first_apperance"
-                    echo "$port"
-                    sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V4}
+                    sed -i "#${first_apperance} ${port}#d" ${ORPHANED_PORTS_FILE_V4}
                 fi
             fi
         done
@@ -81,7 +79,7 @@ function start_service {
                 if ! $(echo ${PORTS_TO_CLOSE_V6} | grep -q ${port}); then
                     echo "${port} has recovered within grace period."
                     first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V6} | awk '{print $1}')
-                    sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V6}
+                    sed -i "#${first_apperance} ${port}#d" ${ORPHANED_PORTS_FILE_V6}
                 fi
             fi
         done
