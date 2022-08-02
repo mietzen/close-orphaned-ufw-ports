@@ -70,6 +70,8 @@ function start_service {
                 if ! $(echo ${PORTS_TO_CLOSE_V4} | grep -q ${port}); then
                     echo "${port} has recovered within grace period."
                     first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V4} | awk '{print $1}')
+                    echo "$first_apperance"
+                    echo "$port"
                     sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V4}
                 fi
             fi
