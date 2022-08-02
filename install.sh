@@ -20,7 +20,7 @@ cp ./close-orphaned-ufw-ports.service /etc/systemd/system/close-orphaned-ufw-por
 systemctl enable close-orphaned-ufw-ports.service
 
 echo "You can Whitelist Ports that should stay open, even if no service is running"
-echo "under /etc/close-orphaned-ufw-ports/whitelist"
+echo "under /etc/close-orphaned-ufw-ports/whitelist.{v4,v6}"
 echo "Adding your SSH Port (e.g. 22) would be a good idea"
 echo "Start the service with:"
 echo "sudo systemctl start close-orphaned-ufw-ports.service"

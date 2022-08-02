@@ -13,14 +13,15 @@ function start_service {
     rm -rf ${ORPHANED_PORTS_FILE_V4} ${ORPHANED_PORTS_FILE_V6} ${STOP_FILE} ${PID_FILE}
 
     touch ${ORPHANED_PORTS_FILE_V4}
+    touch ${ORPHANED_PORTS_FILE_V6}
     echo "$$" > ${PID_FILE}
     while [ ! -f ${STOP_FILE} ]; do
         # Get Listing ports from netstat
-        LISTING_PORTS_V4=$(netstat -tulpn4 | grep "LISTEN" | awk 'BEGIN{OFS="/"} { print $4,$1}' | cut -d':' -f2)
-        LISTING_PORTS_V6=$(netstat -tulpn6 | grep "LISTEN" | awk 'BEGIN{OFS="/"} { print $4,$1}' | cut -d':' -f2)
+        LISTING_PORTS_V4=$(netstat -tulpn4 | grep "LISTEN" | awk 'BEGIN{OFS="/"} { print $4,$1}' | grep -oP '\d{1,5}\/(tcp|udp)')
+        LISTING_PORTS_V6=$(netstat -tulpn6 | grep "LISTEN" | awk 'BEGIN{OFS="/"} { print $4,$1}' | grep -oP '\d{1,5}\/(tcp|udp)')
         # Get opened ports from UFW
-        OPENED_PORTS_UFW_V4=$(ufw status | grep -oP '^\d{1,5}(\/tcp|\/udp)?(\s)(?!\(v6\))')
-        OPENED_PORTS_UFW_V6=$(ufw status | grep -oP '^\d{1,5}(\/tcp|\/udp)?(\s)(?=\(v6\))')
+        OPENED_PORTS_UFW_V4=$(ufw status | grep -v '(v6)' | grep -oP '^\d{1,5}(\/tcp|\/udp)')
+        OPENED_PORTS_UFW_V6=$(ufw status | grep '(v6)' | grep -oP '^\d{1,5}(\/tcp|\/udp)')
 
         PORTS_TO_CLOSE_V4=$(diff -wB <(echo "$LISTING_PORTS_V4") <(echo "$OPENED_PORTS_UFW_V4") | grep -oP '^>.*' | cut -d' ' -f2)
         PORTS_TO_CLOSE_V6=$(diff -wB <(echo "$LISTING_PORTS_V6") <(echo "$OPENED_PORTS_UFW_V6") | grep -oP '^>.*' | cut -d' ' -f2)
