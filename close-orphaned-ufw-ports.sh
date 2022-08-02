@@ -67,7 +67,7 @@ function start_service {
         # Delte recovered service ports from db
         for port in ${LISTING_PORTS_V4}; do
             if grep -q ${port} ${ORPHANED_PORTS_FILE_V4}; then
-                if ! $(echo ${PORTS_TO_CLOSE_V4} | grep -q ${port})
+                if ! $(echo ${PORTS_TO_CLOSE_V4} | grep -q ${port}); then
                     echo "${port} has recovered within grace period."
                     first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V4} | awk '{print $1}')
                     sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V4}
@@ -76,7 +76,7 @@ function start_service {
         done
         for port in ${LISTING_PORTS_6}; do
             if grep -q ${port} ${ORPHANED_PORTS_FILE_V6}; then
-                if ! $(echo ${PORTS_TO_CLOSE_V6} | grep -q ${port})
+                if ! $(echo ${PORTS_TO_CLOSE_V6} | grep -q ${port}); then
                     echo "${port} has recovered within grace period."
                     first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V6} | awk '{print $1}')
                     sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V6}
