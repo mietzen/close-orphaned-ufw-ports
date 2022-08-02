@@ -20,7 +20,7 @@ function start_service {
         # Get opened ports from UFW
         OPENED_PORTS_UFW=$(ufw status | grep -oP '^\d{1,5}/(tcp|udp)(?!\s\(v6\))')
 
-        PORTS_TO_CLOSE=diff -wB <(echo "$LISTING_PORTS") <(echo "$OPENED_PORTS_UFW") | grep -oP '^<.*' | cut -d' ' -f2
+        PORTS_TO_CLOSE=$(diff -wB <(echo "$LISTING_PORTS") <(echo "$OPENED_PORTS_UFW") | grep -oP '^<.*' | cut -d' ' -f2)
 
         if [[ -z "${PORTS_TO_CLOSE}" ]]; then 
             for port in ${PORTS_TO_CLOSE}; do
