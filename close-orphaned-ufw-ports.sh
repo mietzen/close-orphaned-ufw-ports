@@ -2,7 +2,7 @@
 
 source /etc/close-orphaned-ufw-ports/config
 
-function start {
+function start_service {
     if [ -f ${PID_FILE} ]; then 
         if [ $(ps ${PID} > /dev/null) ]; then
             echo "close-orphaned-ufw-ports is already running, pid: $(cat ${PID_FILE})"
@@ -45,7 +45,7 @@ function start {
     rm -rf ${ORPHANED_PORTS_FILE} ${PID_FILE} ${STOP_FILE}
 }
 
-function stop {
+function stop_service {
     PID=$(cat ${PID_FILE})
     touch ${STOP_FILE}
     GRACEFUL_EXIT=false
@@ -67,10 +67,10 @@ function stop {
 
 case $1 in
     start)
-        start()
+        start_service()
         ;;
     stop) 
-        stop()
+        stop_service()
         ;;
     *)
         echo "Unkown argument: $1"

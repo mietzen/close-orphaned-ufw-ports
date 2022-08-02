@@ -1,5 +1,5 @@
 [Unit]
-Description=Route external traffic over ISP gateway, external services are discovered via UFW rules
+Description=Check UFW rules for orphaned rules/ports
 After=network-online.target
 Wants=network-online.target
 
