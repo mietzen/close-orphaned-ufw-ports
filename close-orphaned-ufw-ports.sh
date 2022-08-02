@@ -72,7 +72,7 @@ function start_service {
                     first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V4} | awk '{print $1}')
                     sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V4}
                 fi
-            if
+            fi
         done
         for port in ${LISTING_PORTS_6}; do
             if grep -q ${port} ${ORPHANED_PORTS_FILE_V6}; then
@@ -81,7 +81,7 @@ function start_service {
                     first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V6} | awk '{print $1}')
                     sed -i "/${first_apperance} ${port}/d" ${ORPHANED_PORTS_FILE_V6}
                 fi
-            if
+            fi
         done
 
         sleep 5
