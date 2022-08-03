@@ -133,7 +133,7 @@ function start_service {
             fi
         done
 
-        sleep 10
+        sleep 5
     done
     rm -rf ${ORPHANED_PORTS_FILE_V4} ${ORPHANED_PORTS_FILE_V6} ${PID_FILE} ${STOP_FILE}
 }
