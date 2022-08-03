@@ -36,15 +36,22 @@ function start_service {
         PORTS_TO_CLOSE_V4_WOP=$(diff -wB <(echo "$LISTING_PORTS_V4") <(echo "$OPENED_PORTS_UFW_V4_WOP") | grep -oP '^>.*' | cut -d' ' -f2)
         PORTS_TO_CLOSE_V6_WOP=$(diff -wB <(echo "$LISTING_PORTS_V6") <(echo "$OPENED_PORTS_UFW_V6_WOP") | grep -oP '^>.*' | cut -d' ' -f2)
         PORTS_TO_CLOSE_V4=''
+        RECENT_LOG=$(journalctl _SYSTEMD_INVOCATION_ID=`systemctl show -p InvocationID --value close-orphaned-ufw-ports.service` -n 30 --no-pager)
         for port in $(cut -d'/' -f1 <<< $PORTS_TO_CLOSE_V4_WOP | uniq); do
             if grep -q "${port}/tcp" <<< ${PORTS_TO_CLOSE_V4_WOP}; then
                 if grep -q "${port}/udp" <<< ${PORTS_TO_CLOSE_V4_WOP}; then
                     PORTS_TO_CLOSE_V4=$(echo -e "$PORTS_TO_CLOSE_V4\n${port}")
                 else
-                    echo "WARNING: ${port}/tcp is used but ${port} is opened for any protocol!"
+                    MSG="WARNING: ${port}/tcp is used but ${port} is opened for any protocol!"
+                    if grep -q "${MSG}" <<< ${RECENT_LOG}; then
+                        echo "${MSG}"
+                    fi
                 fi
             else
-                echo "WARNING: ${port}/upd is used but ${port} is opened for any protocol!"
+                MSG="WARNING: ${port}/udp is used but ${port} is opened for any protocol!"
+                if grep -q "${MSG}" <<< ${RECENT_LOG}; then
+                    echo "${MSG}"
+                fi
             fi
         done
         PORTS_TO_CLOSE_V6=''
@@ -53,10 +60,16 @@ function start_service {
                 if grep -q "${port}/udp" <<< ${PORTS_TO_CLOSE_V6_WOP}; then
                     PORTS_TO_CLOSE_V6=$(echo -e "$PORTS_TO_CLOSE_V6\n${port}")
                 else
-                    echo "WARNING: ${port}/tcp6 is used but ${port} (v6) is opened for any protocol!"
+                    MSG="WARNING: ${port}/tcp6 is used but ${port} (v6) is opened for any protocol!"
+                    if grep -q "${MSG}" <<< ${RECENT_LOG}; then
+                        echo "${MSG}"
+                    fi
                 fi
             else
-                echo "WARNING: ${port}/upd6 is used but ${port} (v6) is opened for any protocol!"
+                MSG="WARNING: ${port}/udp6 is used but ${port} (v6) is opened for any protocol!"
+                if grep -q "${MSG}" <<< ${RECENT_LOG}; then
+                    echo "${MSG}"
+                fi
             fi
         done
         PORTS_TO_CLOSE_V4=$(echo -e "$PORTS_TO_CLOSE_V4\n$PORTS_TO_CLOSE_V4_WP" | sed -r '/^\s*$/d')
@@ -113,7 +126,7 @@ function start_service {
         for port in $(cat ${ORPHANED_PORTS_FILE_V6}); do
             if grep -q "${port}" <<< ${LISTING_PORTS_V6}; then
                 if ! $(echo ${PORTS_TO_CLOSE_V6} | grep -qP "${port}$"); then
-                    echo "${port} has recovered within grace period."
+                    echo "${port} (v6) has recovered within grace period."
                     first_apperance=$(grep -P "${port}$" ${ORPHANED_PORTS_FILE_V6} | awk '{print $1}')
                     sed -i "\|${first_apperance} ${port}|d" ${ORPHANED_PORTS_FILE_V6}
                 fi
