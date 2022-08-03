@@ -43,13 +43,13 @@ function start_service {
                     PORTS_TO_CLOSE_V4=$(echo -e "$PORTS_TO_CLOSE_V4\n${port}")
                 else
                     MSG="WARNING: ${port}/tcp is used but ${port} is opened for any protocol!"
-                    if grep -q "${MSG}" <<< ${RECENT_LOG}; then
+                    if ! grep -q "${MSG}" <<< ${RECENT_LOG}; then
                         echo "${MSG}"
                     fi
                 fi
             else
                 MSG="WARNING: ${port}/udp is used but ${port} is opened for any protocol!"
-                if grep -q "${MSG}" <<< ${RECENT_LOG}; then
+                if ! grep -q "${MSG}" <<< ${RECENT_LOG}; then
                     echo "${MSG}"
                 fi
             fi
@@ -61,13 +61,13 @@ function start_service {
                     PORTS_TO_CLOSE_V6=$(echo -e "$PORTS_TO_CLOSE_V6\n${port}")
                 else
                     MSG="WARNING: ${port}/tcp6 is used but ${port} (v6) is opened for any protocol!"
-                    if grep -q "${MSG}" <<< ${RECENT_LOG}; then
+                    if ! grep -q "${MSG}" <<< ${RECENT_LOG}; then
                         echo "${MSG}"
                     fi
                 fi
             else
                 MSG="WARNING: ${port}/udp6 is used but ${port} (v6) is opened for any protocol!"
-                if grep -q "${MSG}" <<< ${RECENT_LOG}; then
+                if ! grep -q "${MSG}" <<< ${RECENT_LOG}; then
                     echo "${MSG}"
                 fi
             fi
