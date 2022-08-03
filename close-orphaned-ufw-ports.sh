@@ -111,7 +111,7 @@ function start_service {
             fi
         done
         for port in $(cat ${ORPHANED_PORTS_FILE_V6}); do
-            if grep -q "${port}" <<< ${LISTING_PORTS_6}; then
+            if grep -q "${port}" <<< ${LISTING_PORTS_V6}; then
                 if ! $(echo ${PORTS_TO_CLOSE_V6} | grep -qP "${port}$"); then
                     echo "${port} has recovered within grace period."
                     first_apperance=$(grep -P "${port}$" ${ORPHANED_PORTS_FILE_V6} | awk '{print $1}')
