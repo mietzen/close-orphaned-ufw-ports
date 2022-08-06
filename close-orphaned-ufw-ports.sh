@@ -60,7 +60,7 @@ function start_service {
                 if grep -q "${port}/udp" <<< ${PORTS_TO_CLOSE_V6_WOP}; then
                     PORTS_TO_CLOSE_V6=$(echo -e "$PORTS_TO_CLOSE_V6\n${port}")
                 else
-                    MSG="WARNING: ${port}/udp6 is used but ${port} (v6) is opened for any protocol!"
+                    MSG="WARNING: ${port}/udp is used but ${port} (v6) is opened for any protocol!"
                     if ! grep -q "${MSG}" <<< ${RECENT_LOG}; then
                         echo "${MSG}"
                     fi
@@ -83,13 +83,20 @@ function start_service {
                         first_apperance=$(grep ${port} ${ORPHANED_PORTS_FILE_V4} | awk '{print $1}')
                         if [[ $(( $(date +%s) - first_apperance )) -ge $GRACE_PERIOD ]]; then
                             echo "${port} is opend and unused for more than ${GRACE_PERIOD} Seconds."
-                            rule=$(ufw status numbered | grep -v '(v6)' | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
-                            ufw --force delete ${rule}
+                            while $(ufw status numbered | grep -P 'ALLOW' | grep -v '(v6)' | grep -qP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))"); do
+                                rule=$(ufw status numbered | grep -P 'ALLOW' | grep -v '(v6)' | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
+                                ufw --force delete ${rule}
+                            done
                             sed -i "\|${first_apperance} ${port}|d" ${ORPHANED_PORTS_FILE_V4}
-                            echo "Closed Port ${port}"
+                            echo "Delted all ufw allow rules for port ${port}"
                         fi
                     else
                         echo "$(date +%s) ${port}" >> ${ORPHANED_PORTS_FILE_V4}
+                    fi
+                else
+                    MSG="WARNING: ${port} is not used, it's whitelisted so it will be left opened!"
+                    if ! grep -q "${MSG}" <<< ${RECENT_LOG}; then
+                        echo "${MSG}"
                     fi
                 fi
             done
@@ -101,13 +108,20 @@ function start_service {
                         first_apperance=$(grep -P "${port}$" ${ORPHANED_PORTS_FILE_V6} | awk '{print $1}')
                         if [[ $(( $(date +%s) - first_apperance )) -ge $GRACE_PERIOD ]]; then
                             echo "${port} (v6) is opend and unused for more than ${GRACE_PERIOD} Seconds."
-                            rule=$(ufw status numbered | grep '(v6)' | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
-                            ufw --force delete ${rule}
+                            while $(ufw status numbered | grep -P 'ALLOW' | grep '(v6)' | grep -qP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))"); do
+                                rule=$(ufw status numbered | grep -P 'ALLOW' | grep '(v6)' | grep -oP "(?<=\[)\s?\d(?=]\s$(sed 's#/#\\/#g' <<< ${port}))" | xargs)
+                                ufw --force delete ${rule}
+                            done
                             sed -i "\|${first_apperance} ${port}|d" ${ORPHANED_PORTS_FILE_V6}
-                            echo "Closed Port ${port} (v6)"
+                            echo "Delted all ufw allow rules for port ${port} (v6)"
                         fi
                     else
                         echo "$(date +%s) ${port}" >> ${ORPHANED_PORTS_FILE_V6}
+                    fi
+                else
+                    MSG="WARNING: ${port} (v6) is not used, it's whitelisted so it will be left opened!"
+                    if ! grep -q "${MSG}" <<< ${RECENT_LOG}; then
+                        echo "${MSG}"
                     fi
                 fi
             done
@@ -133,7 +147,7 @@ function start_service {
             fi
         done
 
-        sleep 5
+        sleep $(( $GRACE_PERIOD / 3 )) 
     done
     rm -rf ${ORPHANED_PORTS_FILE_V4} ${ORPHANED_PORTS_FILE_V6} ${PID_FILE} ${STOP_FILE}
 }
@@ -142,18 +156,18 @@ function stop_service {
     PID=$(cat ${PID_FILE})
     touch ${STOP_FILE}
     GRACEFUL_EXIT=false
-    for i in {0..10}; do
+    for i in {0..9}; do
         if [ ! $(ps ${PID} > /dev/null) ]; then
             GRACEFUL_EXIT=true
             break
         fi
         echo "wating for process to end gracefully"
-        sleep 2
+        sleep $(( ( $GRACE_PERIOD / 3 / 10 ) + 1 )) 
     done
     if [ ! ${GRACEFUL_EXIT} ] ; then
         kill -9 ${PID}
         rm -rf ${ORPHANED_PORTS_FILE_V4} ${ORPHANED_PORTS_FILE_V6} ${PID_FILE} ${STOP_FILE}
-        echo "process was terminated ungracefully after 20 seconds"
+        echo "process was terminated ungracefully after $(( $GRACE_PERIOD / 3 + 10 )) seconds"
         exit 1
     fi
 }

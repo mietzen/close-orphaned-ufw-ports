@@ -1,4 +1,4 @@
-GRACE_PERIOD=60 # In seconds
+GRACE_PERIOD=60 # In seconds, default=60s
 
 WHITELISTED_PORTS_FILE_V4='/etc/close-orphaned-ufw-ports/whitelist.v4'
 WHITELISTED_PORTS_FILE_V6='/etc/close-orphaned-ufw-ports/whitelist.v6'
